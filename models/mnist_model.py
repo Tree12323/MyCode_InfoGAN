@@ -6,6 +6,7 @@ import torch.nn.functional as F
 Architecture based on InfoGAN paper.
 """
 
+# 生成器
 class Generator(nn.Module):
     def __init__(self):
         super().__init__()
@@ -30,6 +31,7 @@ class Generator(nn.Module):
 
         return img
 
+# 判别器
 class Discriminator(nn.Module):
     def __init__(self):
         super().__init__()

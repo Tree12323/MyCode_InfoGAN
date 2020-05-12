@@ -13,6 +13,7 @@ from dataloader import get_data
 from utils import *
 from config import params
 
+# 选择数据集，MNIST or SVHN
 if(params['dataset'] == 'MNIST'):
     from models.mnist_model import Generator, Discriminator, DHead, QHead
 elif(params['dataset'] == 'SVHN'):
@@ -23,12 +24,14 @@ elif(params['dataset'] == 'FashionMNIST'):
     from models.mnist_model import Generator, Discriminator, DHead, QHead
 
 # Set random seed for reproducibility.
+# 随机种子
 seed = 1123
 random.seed(seed)
 torch.manual_seed(seed)
 print("Random Seed: ", seed)
 
 # Use GPU if available.
+# 是否使用GPU
 device = torch.device("cuda:0" if(torch.cuda.is_available()) else "cpu")
 print(device, " will be used.\n")
 
@@ -71,13 +74,16 @@ plt.savefig('Training Images {}'.format(params['dataset']))
 plt.close('all')
 
 # Initialise the network.
+# 生成器
 netG = Generator().to(device)
 netG.apply(weights_init)
 print(netG)
 
+# 判别器
 discriminator = Discriminator().to(device)
 discriminator.apply(weights_init)
 print(discriminator)
+
 
 netD = DHead().to(device)
 netD.apply(weights_init)
@@ -99,6 +105,7 @@ optimD = optim.Adam([{'params': discriminator.parameters()}, {'params': netD.par
 optimG = optim.Adam([{'params': netG.parameters()}, {'params': netQ.parameters()}], lr=params['learning_rate'], betas=(params['beta1'], params['beta2']))
 
 # Fixed Noise
+# 生成器噪声 c and z
 z = torch.randn(100, params['num_z'], 1, 1, device=device)
 fixed_noise = z
 if(params['num_dis_c'] != 0):
@@ -141,26 +148,34 @@ for epoch in range(params['num_epochs']):
         real_data = data.to(device)
 
         # Updating discriminator and DHead
+        # 判别器+DHead=1
         optimD.zero_grad()
         # Real data
         label = torch.full((b_size, ), real_label, device=device)
+        # real_data -> 1
         output1 = discriminator(real_data)
         probs_real = netD(output1).view(-1)
+        # loss_real
         loss_real = criterionD(probs_real, label)
         # Calculate gradients.
         loss_real.backward()
 
         # Fake data
         label.fill_(fake_label)
+        # 噪声采样
         noise, idx = noise_sample(params['num_dis_c'], params['dis_c_dim'], params['num_con_c'], params['num_z'], b_size, device)
+        # 生成fake_data
         fake_data = netG(noise)
+        # fake_data -> 0
         output2 = discriminator(fake_data.detach())
         probs_fake = netD(output2).view(-1)
+        # loss_fake
         loss_fake = criterionD(probs_fake, label)
         # Calculate gradients.
         loss_fake.backward()
 
         # Net Loss for the discriminator
+        # Discriminator loss
         D_loss = loss_real + loss_fake
         # Update parameters
         optimD.step()
@@ -169,13 +184,17 @@ for epoch in range(params['num_epochs']):
         optimG.zero_grad()
 
         # Fake data treated as real.
-        output = discriminator(fake_data)
+        # (fake_data, 1) update Generator
         label.fill_(real_label)
+        # 使用判别器判别fake_data
+        output = discriminator(fake_data)
         probs_fake = netD(output).view(-1)
         gen_loss = criterionD(probs_fake, label)
 
+
         q_logits, q_mu, q_var = netQ(output)
         target = torch.LongTensor(idx).to(device)
+
         # Calculating loss for discrete latent code.
         dis_loss = 0
         for j in range(params['num_dis_c']):
