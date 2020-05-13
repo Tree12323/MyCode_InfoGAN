@@ -33,12 +33,12 @@ def noise_sample(n_dis_c, dis_c_dim, n_con_c, n_z, batch_size, device):
 
     INPUT
     --------
-    n_dis_c : Number of discrete latent code.
-    dis_c_dim : Dimension of discrete latent code.
-    n_con_c : Number of continuous latent code.
-    n_z : Dimension of iicompressible noise.
-    batch_size : Batch Size
-    device : GPU/CPU
+    n_dis_c : Number of discrete latent code. 1
+    dis_c_dim : Dimension of discrete latent code. 10
+    n_con_c : Number of continuous latent code. 2
+    n_z : Dimension of iicompressible noise. 62
+    batch_size : Batch Size 128
+    device : GPU/CPU cuda
     """
 
     z = torch.randn(batch_size, n_z, 1, 1, device=device)

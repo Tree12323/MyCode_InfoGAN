@@ -162,7 +162,7 @@ for epoch in range(params['num_epochs']):
 
         # Fake data
         label.fill_(fake_label)
-        # 噪声采样
+        # 噪声采样(128,74,1,1) idx:数字标签
         noise, idx = noise_sample(params['num_dis_c'], params['dis_c_dim'], params['num_con_c'], params['num_z'], b_size, device)
         # 生成fake_data
         fake_data = netG(noise)
